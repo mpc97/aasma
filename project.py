@@ -10,11 +10,12 @@ def main():
         airportNames.remove(an)
         d = random.choice(dimensions)
         nl = random.randint(1,3)
-        nfm = random.randint(1,3)
+        #nfm = random.randint(1,3)
+        nfm = 5
         nFlightsCreated += nfm
         l = random.randint(locl, locl + 20)
         locl += 30  #garantir que estao pelo menos a 10 de distancia uns dos outros
-        airport = Airport(an, d, nl, nfm, l)
+        airport = Airport(an, d, 1, nfm, l)
         airports.append(airport)
     nPlanes = nFlightsCreated
 
@@ -86,9 +87,15 @@ def main():
 
     #criar as horas de partida, distribuindo consoante o numero de pistas do aeroporto
     for aeroporto in airports:
-        lane = 0
+        lane = 0 #começa a 0 para o primeiro voo poder ser no departure 0
         dep = 0
         for i in range(len(aeroporto.flights)):
+            print("iteração: " + str(i))
+            #print("iteração: " + str(aeroporto.flights[i].planeID))
+            #print("AeroportoNLanes: " + str(aeroporto.nLanes))
+            #print("lane: " + str(lane))
+            #print("dep: " + str(dep) + "\n")
+
             if aeroporto.nLanes == lane:
                 #Muda hora do departure
                 dep += 5
@@ -101,7 +108,7 @@ def main():
                     aeroporto.departuresFlights[aeroporto.flights[i].getDepartureTime()] = []
                     aeroporto.departuresFlights[aeroporto.flights[i].getDepartureTime()].append(aeroporto.flights[i])
                 
-                lane = 0
+                lane = 1
             
             else:
                 lane += 1
