@@ -12,9 +12,11 @@ def main():
         nl = random.randint(1,3)
         nfm = random.randint(1,3)
         nFlightsCreated += nfm
-        l = random.randint(locl, locl + 20)
+        locl = random.randint(locl, locl + 20)
         locl += 30  #garantir que estao pelo menos a 10 de distancia uns dos outros
-        airport = Airport(an, d, nl, nfm, l)
+        if (locl % 2) != 0:
+            locl -= 1
+        airport = Airport(an, d, nl, nfm, locl)
         airports.append(airport)
     nPlanes = nFlightsCreated
 
@@ -79,7 +81,9 @@ def main():
             #cria com partida com 0, preocupamo-nos depois
             departure = 0
 
-            flight = Flight(id_plane, airp.name, departure, 1, aa.name, departure + t, 1, t, d)
+            s = status[0]
+
+            flight = Flight(id_plane, airp.name, departure, 1, aa.name, departure + t, 1, t, d, s)
             airp.flights.append(flight)
             flights.append(flight)
 
@@ -119,6 +123,7 @@ def main():
     for pora in airports:
         print("----Aeroporto seguinte----")
         print("Airport name: " + pora.name)
+        print("Airport localization: " + str(pora.localization))
         print("Airport numero de voos: " + str(pora.nFlightsMax))
         print("Airport numero de pistas: " + str(pora.nLanes))
         print("Airport dimension: " + str(pora.dim))
@@ -134,9 +139,36 @@ def main():
             print("Flight time: " + str(pora.flights[i].flightTime))
         print("--------------------")
 
-    '''while True:
-        break'''
+    time = 0
+
+    while flights != []:
         
+        #mudar o estado para dizer que o aviao ja partiu
+        for apt in airports:
+            if time in apt.departuresFlights:
+                for f in apt.departuresFlights[time]:
+                    f.setStatus(status[1])
+
+                    #cria um dicionario do tempo das chegadas no aeroporto de chegada
+                    apt_aa_name = f.getArrivalAirport()
+                    arrivalTimeOficial = int(f.getDepartureTime() + f.getFlightTime())
+                    for i in range(len(airports)):
+                        if airports[i].name == apt_aa_name:
+                            if arrivalTimeOficial in airports[i].arrivalFlights:
+                                airports[i].arrivalFlights[arrivalTimeOficial].append(f)
+                            else:    
+                                airports[i].arrivalFlights[arrivalTimeOficial] = []
+                                airports[i].arrivalFlights[arrivalTimeOficial].append(f)
+        
+        if time == 20:
+            break
+
+        time += 1
+
+    for j in range(len(airports)):
+        print("Nome do aero: " + str(airports[j].name))
+        print("dict do arrivals: " + str(airports[j].arrivalFlights))
+
 #####################
 ###    CLASSES    ###
 #####################
@@ -160,10 +192,11 @@ class Airport:
         self.airplanes = []
         self.flights = []
         self.departuresFlights = {}
+        self.arrivalFlights = {}
 
 
 class Flight:
-    def __init__(self, planeID, departureAirport, departureTime, departureLane, arrivalAirport, arrivalTime, boardingDetails, flightTime, flightDistance):
+    def __init__(self, planeID, departureAirport, departureTime, departureLane, arrivalAirport, arrivalTime, boardingDetails, flightTime, flightDistance, status):
         self.planeID = planeID
         #self.nPassengers = nPassengers
         self.arrivalAirport = arrivalAirport
@@ -174,6 +207,7 @@ class Flight:
         self.boardingDetails = boardingDetails
         self.flightTime = flightTime
         self.flightDistance = flightDistance
+        self.status = status
 
     def getDepartureTime(self):
         return self.departureTime 
@@ -181,14 +215,26 @@ class Flight:
     def setDepartureTime(self, departureTime):
         self.departureTime = departureTime
 
+    def getArrivalTime(self):
+        return self.arrivalTime 
+
     def setArrivalTime(self, arrivalTime):
         self.arrivalTime = arrivalTime
 
     def setDepartureLane(self, lane):
         self.departureLane = lane
 
+    def setStatus(self, s):
+        self.status = s
+
+    def getStatus(self):
+        return self.status
+
     def getFlightTime(self):
         return self.flightTime 
+
+    def getArrivalAirport(self):
+        return self.arrivalAirport
 
 
 #####################
@@ -203,6 +249,7 @@ dimensions = [100, 150, 180]
 airlineCompanies = ['aaa', 'bbb', 'ccc', 'ddd']
 airportNames = ['Lisboa', 'Madrid', 'Paris']
 airportNamesSelected = ['Lisboa', 'Madrid', 'Paris']
+status = ['created', 'departed', 'approaching', 'finished']
 
 
 airplanes = []
