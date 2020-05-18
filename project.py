@@ -51,16 +51,7 @@ def main():
             #criar arrival airport que nao seja o mesmo do departure, tendo que ter um aviao de tamanhos semelhantes ou menor
             while aa.name == airp.name:
                 aa = random.choice(airports)
-            
-            #garantir que o aviao vai ter uma dimensao inferior a do aeroporto (acho que vou ignorar esta parte)
-            '''while id_plane == '':
-                print('Preso no garantir que plane cabe no aero de chegada')
-                print(airplanesAvailableToChooseFrom)
-                p = random.choice(airplanesAvailableToChooseFrom)
-                if p.dim <= aa.dim:
-                    id_plane = p.id
-                    airplanesAvailableToChooseFrom.remove(p)'''
-
+        
             try:
                 p = random.choice(airplanesAvailableToChooseFrom)
             except:
@@ -81,9 +72,9 @@ def main():
             #cria com partida com 0, preocupamo-nos depois
             departure = 0
 
-            s = status[0]
+            delay = 0
 
-            flight = Flight(id_plane, airp.name, departure, 1, aa.name, departure + t, 1, t, d, s)
+            flight = Flight(id_plane, airp.name, departure, 1, aa.name, departure + t, 1, t, d, delay)
             airp.flights.append(flight)
             flights.append(flight)
 
@@ -140,6 +131,7 @@ def main():
         print("--------------------")
 
     time = 0
+    preparingToArrive = []
 
     while flights != []:
         
@@ -147,8 +139,6 @@ def main():
         for apt in airports:
             if time in apt.departuresFlights:
                 for f in apt.departuresFlights[time]:
-                    f.setStatus(status[1])
-
                     #cria um dicionario do tempo das chegadas no aeroporto de chegada
                     apt_aa_name = f.getArrivalAirport()
                     arrivalTimeOficial = int(f.getDepartureTime() + f.getFlightTime())
@@ -160,14 +150,30 @@ def main():
                                 airports[i].arrivalFlights[arrivalTimeOficial] = []
                                 airports[i].arrivalFlights[arrivalTimeOficial].append(f)
         
-        if time == 20:
-            break
+
+        #verifica se esta proximo do aeroporto (menos de time = 2 de chegada), acrescenta nome dos aero que têm aviões a aterrar àquela hora
+        for a in airports:
+            t2 = time + 2
+            if t2 in a.arrivalFlights:
+                preparingToArrive.append(a)
+
+        #chamar a interact
+
+
+        #remover flight da lista de voos, depois da hora de chegada passar
+        for a in airports:
+            for f in a.arrivalFlights:
+                for fl in a.arrivalFlights[f]:
+                    if time in a.arrivalFlights and fl.delay == 0:
+                        print('fl: ' + str(fl))
+                        print('flights: ' + str(flights))
+                        if fl in flights:
+                            flights.remove(fl)
 
         time += 1
 
-    for j in range(len(airports)):
-        print("Nome do aero: " + str(airports[j].name))
-        print("dict do arrivals: " + str(airports[j].arrivalFlights))
+    
+
 
 #####################
 ###    CLASSES    ###
@@ -194,9 +200,12 @@ class Airport:
         self.departuresFlights = {}
         self.arrivalFlights = {}
 
+        def interact(self, airport):
+            pass
+
 
 class Flight:
-    def __init__(self, planeID, departureAirport, departureTime, departureLane, arrivalAirport, arrivalTime, boardingDetails, flightTime, flightDistance, status):
+    def __init__(self, planeID, departureAirport, departureTime, departureLane, arrivalAirport, arrivalTime, boardingDetails, flightTime, flightDistance, delay):
         self.planeID = planeID
         #self.nPassengers = nPassengers
         self.arrivalAirport = arrivalAirport
@@ -207,7 +216,7 @@ class Flight:
         self.boardingDetails = boardingDetails
         self.flightTime = flightTime
         self.flightDistance = flightDistance
-        self.status = status
+        self.delay = delay
 
     def getDepartureTime(self):
         return self.departureTime 
@@ -224,11 +233,11 @@ class Flight:
     def setDepartureLane(self, lane):
         self.departureLane = lane
 
-    def setStatus(self, s):
-        self.status = s
+    def setDelay(self, d):
+        self.delay = d
 
-    def getStatus(self):
-        return self.status
+    def getDelay(self):
+        return self.delay
 
     def getFlightTime(self):
         return self.flightTime 
@@ -246,10 +255,9 @@ nAirports = 3
 
 #passengers = [250, 300, 350]
 dimensions = [100, 150, 180]
-airlineCompanies = ['aaa', 'bbb', 'ccc', 'ddd']
+airlineCompanies = ['aaa', 'bbb', 'ccc', 'ddd', 'eee', 'fff', 'ggg', 'hhh', 'iii', 'jjj', 'kkk', 'lll', 'mmm']
 airportNames = ['Lisboa', 'Madrid', 'Paris']
 airportNamesSelected = ['Lisboa', 'Madrid', 'Paris']
-status = ['created', 'departed', 'approaching', 'finished']
 
 
 airplanes = []
