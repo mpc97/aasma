@@ -140,6 +140,7 @@ def main():
     #----------COMEÇA O CRONOMETRO--------------
 
     time = 0
+
     while flights != []:
         
         #mudar o estado para dizer que o aviao ja partiu
@@ -204,19 +205,13 @@ def main():
                             a.arrivalFlights[ms[i].getArrivalTime()] = []
                             a.arrivalFlights[ms[i].getArrivalTime()].append(ms[i])
 
+        for a in airports:
+            for f in a.flights:
+                if f.getDepartureTime() < time:
+                    currentFuelLevel = f.getAirplane().getFuelLevel()
+                    updateLevel = round(currentFuelLevel - 0.2, 2)
+                    f.getAirplane().setFuelLevel(updateLevel)
 
-
-
-        #remover flight da lista de voos, depois da hora de chegada passar
-        '''for a in airports:
-            for d in a.arrivalFlights:
-                for fl in a.arrivalFlights[d]:
-                    if time in a.arrivalFlights and fl.delay == 0:
-                        if fl in flights:
-                            print(time)
-                            print('Voo a retirar: ' + str(fl))
-                            print("flights: " + str(flights))
-                            flights.remove(fl)'''
 
         #condição de paragem
         maximo = 0
@@ -252,6 +247,7 @@ def main():
             print("Delay: " + str(pora.flights[i].delay))
             print("Flight distance: " + str(pora.flights[i].flightDistance))
             print("Flight time: " + str(pora.flights[i].flightTime))
+            print("Fuel Level: " + str(pora.flights[i].getAirplane().fuelLevel))
         print("--------------------")
 
 
@@ -313,26 +309,34 @@ class Airplane:
         self.airlineCompany = airlineCompany
 
     def broadcast(self):
-        propertiesList = [self.id, self.dim, self.airlineCompany]
+        propertiesList = [self.id, self.dim, self.airlineCompany, self.fuelLevel]
         return propertiesList
 
     #se retornar 1 é sinal que o self tem vantagem
+    #ordem: Dimensão > Nível de comnustível > Companhia Aerea
     def receiveBroadcast(self, otherList):
         id = otherList[0]
         d = otherList[1]
         ac = otherList[2]
+        fl = otherList[3]
         res = 1
         if self.dim == d:
-            indSelf = airlineCompanies.index(self.airlineCompany)
-            indOther = airlineCompanies.index(ac)
-            if indOther < indSelf:
+            if self.fuelLevel > fl:
                 res = 0
+            elif self.fuelLevel == fl:
+                indSelf = airlineCompanies.index(self.airlineCompany)
+                indOther = airlineCompanies.index(ac)
+                if indOther < indSelf:
+                    res = 0 
         elif self.dim < d:
             res = 0
         return res
 
-    def interact(self, other):
-        print("Estou no interact")
+    def setFuelLevel(self, fl):
+        self.fuelLevel = fl
+
+    def getFuelLevel(self):
+        return self.fuelLevel
 
 class Airport:
     def __init__(self, name, dim, nLanes, nLanesArrivals, nFlightsMax, localization):
@@ -417,5 +421,3 @@ flights = []
 
 if __name__ == "__main__":
     main()
-
-
