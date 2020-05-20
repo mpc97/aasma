@@ -5,25 +5,28 @@ def main():
 
     #-------------INICIALIZAÇÃO------------------
 
+    totalDelay = 0
+    avgDelay = 0.0
+    totalFlights = 0
+
     #creation of airports
     locl = 0
     nFlightsCreated = 0 
     for i in range(nAirports):
         an = random.choice(airportNames)
         airportNames.remove(an)
-        d = random.choice(dimensions)
         #nl = random.randint(1,3)        #numero de lanes para partidas
         #nla = random.randint(1,3)       #numero de lanes para chegadas
         #nfm = random.randint(1,3)       #numero maximo de voos que partem daquele aeroporto
-        nl = 5
-        nla = 1
-        nfm = 5
+        nl = 3
+        nla = 2
+        nfm = 3
         nFlightsCreated += nfm
         locl = random.randint(locl, locl + 20)
         locl += 30  #garantir que estao pelo menos a 10 de distancia uns dos outros
         if (locl % 2) != 0:
             locl -= 1
-        airport = Airport(an, d, nl, nla, nfm, locl)
+        airport = Airport(an, nl, nla, nfm, locl)
         airports.append(airport)
     nPlanes = nFlightsCreated
 
@@ -171,7 +174,15 @@ def main():
                         priority.append(af)
 
                 msp = mergeSort(priority)
+                #print(a.name)
+                #print('Flights: ' + str(arrayFlights))
+                #for fl in arrayFlights:
+                    #print('dimensao dos avioes dos voos: ' + str(fl.getAirplane().dim))
                 ms = mergeSort(arrayFlights)
+                #print('Depois do merge')
+                #print('Flights: ' + str(arrayFlights))
+                #for fl in arrayFlights:
+                    #print('dimensao dos avioes dos voos: ' + str(fl.getAirplane().dim))
 
                 if msp != []:
                     for j in range(len(msp)):
@@ -225,6 +236,18 @@ def main():
 
         time += 1
 
+    #---------- Delay ---------
+    for a in airports:
+        totalFlights += len(a.flights)
+        for f in a.flights:
+            totalDelay += f.delay
+    
+    avgDelay = totalDelay / totalFlights
+
+    print("Total Delay in all flights: " + str(totalDelay))
+    print("Total flights: " + str(totalFlights))
+    print("Average: " + str(avgDelay))
+
     print("Número total de voos: " + str(len(flights)))
 
     for pora in airports:
@@ -234,7 +257,6 @@ def main():
         print("Airport numero de voos: " + str(pora.nFlightsMax))
         print("Airport numero de pistas: " + str(pora.nLanes))
         print("Airport numero de pistas para aterrar: " + str(pora.nLanesArrivals))
-        print("Airport dimension: " + str(pora.dim))
         for i in range(len(pora.flights)):
             print("------Próximo voo-------")
             print("Airport flights: " + pora.flights[i].planeID)
@@ -275,7 +297,7 @@ def mergeSort(arr):
             #res = a1.receiveBroadcast(lst)
             lst = L[i].getAirplane().broadcast()
             res = R[j].getAirplane().receiveBroadcast(lst)
-            if res > 0:
+            if res == 0:
                 arr[k] = L[i] 
                 i+=1
             else: 
@@ -339,9 +361,8 @@ class Airplane:
         return self.fuelLevel
 
 class Airport:
-    def __init__(self, name, dim, nLanes, nLanesArrivals, nFlightsMax, localization):
+    def __init__(self, name, nLanes, nLanesArrivals, nFlightsMax, localization):
         self.name = name
-        self.dim = dim
         self.nLanes = nLanes
         self.nLanesArrivals = nLanesArrivals
         self.nFlightsMax = nFlightsMax
@@ -409,7 +430,7 @@ class Flight:
 nPlanes = 0
 nAirports = 2
 
-dimensions = [100, 150, 180]
+dimensions = [85, 100, 150, 180, 200]
 airlineCompanies = ['TAP', 'KLM', 'Air France', 'Emirates', 'Qatar', 'British Airways', 'Vueling', 'Iberia', 'Ryanair', 'Easy Jet']
 airportNames = ['Lisboa', 'Madrid', 'Paris']
 airportNamesSelected = ['Lisboa', 'Madrid', 'Paris']
