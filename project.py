@@ -39,6 +39,7 @@ def main():
         fl = 100
         ac = random.choice(airlineCompanies)
         airplane = Airplane(iden, d, fl, ac)
+        airplane.calculateUtility()
         airplanes.append(airplane)
         airplanesAvailableToChooseFrom.append(airplane)
 
@@ -167,22 +168,57 @@ def main():
             arri = t1
             delay = 0
             priority = []
-            if t1 in a.arrivalFlights:
+
+
+            ########################
+            ##    NÃO APAGAR, ESTE FAZ AS PRIORIDADES QUANDO ESTAMOS A FALAR DE ATRIBUTOS FIXOS
+            ########################
+
+            '''if t1 in a.arrivalFlights:
                 arrayFlights = a.arrivalFlights[t1]
                 for af in arrayFlights:
                     if af.getDelay() >= 5:
                         priority.append(af)
 
-                msp = mergeSort(priority)
                 #print(a.name)
                 #print('Flights: ' + str(arrayFlights))
                 #for fl in arrayFlights:
                     #print('dimensao dos avioes dos voos: ' + str(fl.getAirplane().dim))
+
+                msp = mergeSort(priority)
                 ms = mergeSort(arrayFlights)
+
+                #Só para visualizar que as prioridades estão a funcionar
                 #print('Depois do merge')
                 #print('Flights: ' + str(arrayFlights))
                 #for fl in arrayFlights:
-                    #print('dimensao dos avioes dos voos: ' + str(fl.getAirplane().dim))
+                    #print('dimensao dos avioes dos voos: ' + str(fl.getAirplane().dim))'''
+
+            ########################
+            ##    NÃO APAGAR, ESTE FAZ AS PRIORIDADES QUANDO ESTAMOS A FALAR DE  UTILIDADES
+            ########################
+            
+            if t1 in a.arrivalFlights:
+                arrayFlights = a.arrivalFlights[t1]
+                for af in arrayFlights:
+                    if af.getDelay() >= 5:
+                        af.getAirplane().setUtility(10)
+                        priority.append(af)
+
+                #Só para visualizar que as prioridades estão a funcionar
+                print(a.name)
+                print('Flights: ' + str(arrayFlights))
+                for fl in arrayFlights:
+                    print('utility dos voos: ' + str(fl.getAirplane().utility))
+                
+                msp = mergeSortUtilities(priority)
+                ms = mergeSortUtilities(arrayFlights)
+                
+                #Só para visualizar que as prioridades estão a funcionar
+                print('Depois do merge')
+                print('Flights: ' + str(arrayFlights))
+                for fl in ms:
+                    print('utility dos voos: ' + str(fl.getAirplane().utility))
 
                 if msp != []:
                     for j in range(len(msp)):
@@ -260,6 +296,7 @@ def main():
         for i in range(len(pora.flights)):
             print("------Próximo voo-------")
             print("Airport flights: " + pora.flights[i].planeID)
+            print("Airline Company: " + pora.flights[i].getAirplane().airlineCompany)
             print("Airport departure: " + pora.flights[i].departureAirport)
             print("Airport departure time: " + str(pora.flights[i].departureTime))
             print("Airport departure lane: " + str(pora.flights[i].departureLane))
@@ -270,6 +307,7 @@ def main():
             print("Flight distance: " + str(pora.flights[i].flightDistance))
             print("Flight time: " + str(pora.flights[i].flightTime))
             print("Fuel Level: " + str(pora.flights[i].getAirplane().fuelLevel))
+            print("Uility: " + str(pora.flights[i].getAirplane().utility))
         print("--------------------")
 
 
@@ -318,6 +356,51 @@ def mergeSort(arr):
 
     return arr
 
+def mergeSortUtilities(arr):
+    if arr == []:
+        return arr
+
+    if len(arr) > 1: 
+        mid = len(arr)//2 #Finding the mid of the array 
+        L = arr[:mid] # Dividing the array elements  
+        R = arr[mid:] # into 2 halves 
+  
+        mergeSortUtilities(L) # Sorting the first half 
+        mergeSortUtilities(R) # Sorting the second half 
+  
+        i = j = k = 0
+          
+        # Copy data to temp arrays L[] and R[] 
+        while i < len(L) and j < len(R):
+            #lst  = a2.broadcast()
+            #res = a1.receiveBroadcast(lst)
+            plane1 = L[i].getAirplane().utility
+            plane2 = R[j].getAirplane().utility
+            if plane1 > plane2: 
+                arr[k] = L[i] 
+                i+=1
+            else: 
+                arr[k] = R[j] 
+                j+=1
+            k+=1
+          
+        # Checking if any element was left 
+        while i < len(L):
+            arr[k] = L[i] 
+            i+=1
+            k+=1
+          
+        while j < len(R): 
+            arr[k] = R[j] 
+            j+=1
+            k+=1
+
+    return arr
+
+
+def getIndex(array, thing):
+    return array.index(thing)
+
 
 #####################
 ###    CLASSES    ###
@@ -329,6 +412,26 @@ class Airplane:
         self.dim = dim
         self.fuelLevel = fuelLevel
         self.airlineCompany = airlineCompany
+        self.utility = 0
+
+    def calculateUtility(self):
+        indAc = getIndex(airlineCompanies, self.airlineCompany)
+        indD = getIndex(dimensions, self.dim)
+        uAC = airlineCompaniesUtilities[indAc]
+        uD = dimensionsUtilities[indD]
+
+        self.utility = uAC + uD
+    
+    utilityIncremented = False
+    def setUtility(self, u):
+        if utilityIncremented == False:
+            self.utility += u
+            utilityIncremented = True
+        else:
+            self.utility += 1
+
+    def getUtility(self):
+        return self.utility
 
     def broadcast(self):
         propertiesList = [self.id, self.dim, self.airlineCompany, self.fuelLevel]
@@ -430,10 +533,12 @@ class Flight:
 nPlanes = 0
 nAirports = 2
 
-dimensions = [85, 100, 150, 180, 200]
+dimensions = [200, 180, 150, 100, 85]
+dimensionsUtilities = [3.2, 2.4, 1.6, 0.8, 0]
 airlineCompanies = ['TAP', 'KLM', 'Air France', 'Emirates', 'Qatar', 'British Airways', 'Vueling', 'Iberia', 'Ryanair', 'Easy Jet']
-airportNames = ['Lisboa', 'Madrid', 'Paris']
-airportNamesSelected = ['Lisboa', 'Madrid', 'Paris']
+airlineCompaniesUtilities = [4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 0.5, 0]
+airportNames = ['Lisboa', 'Madrid', 'Paris', 'Berlim' , 'Frankfurt', 'Roma', 'Veneza', 'Zagreb', 'Manchester', 'Porto']
+airportNamesSelected = ['Lisboa', 'Madrid', 'Paris', 'Berlim' , 'Frankfurt', 'Roma', 'Veneza', 'Zagreb', 'Manchester', 'Porto']
 
 
 airplanes = []
