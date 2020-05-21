@@ -19,8 +19,8 @@ def main():
         #nla = random.randint(1,3)       #numero de lanes para chegadas
         #nfm = random.randint(1,3)       #numero maximo de voos que partem daquele aeroporto
         nl = 3
-        nla = 2
-        nfm = 3
+        nla = 3
+        nfm = 5
         nFlightsCreated += nfm
         locl = random.randint(locl, locl + 20)
         locl += 30  #garantir que estao pelo menos a 10 de distancia uns dos outros
@@ -120,27 +120,6 @@ def main():
                     aeroporto.departuresFlights[aeroporto.flights[i].getDepartureTime()].append(aeroporto.flights[i])
 
 
-    '''print("Número total de voos: " + str(len(flights)))
-
-    for pora in airports:
-        print("----Aeroporto seguinte----")
-        print("Airport name: " + pora.name)
-        print("Airport localization: " + str(pora.localization))
-        print("Airport numero de voos: " + str(pora.nFlightsMax))
-        print("Airport numero de pistas: " + str(pora.nLanes))
-        print("Airport dimension: " + str(pora.dim))
-        for i in range(len(pora.flights)):
-            print("------Próximo voo-------")
-            print("Airport flights: " + pora.flights[i].planeID)
-            print("Airport departure time: " + str(pora.flights[i].departureTime))
-            print("Airport lane: " + str(pora.flights[i].departureLane))
-            print("Airport departure: " + pora.flights[i].departureAirport)
-            print("Airport arrival: " + pora.flights[i].arrivalAirport)
-            print("Arrival time: " + str(pora.flights[i].arrivalTime))
-            print("Flight distance: " + str(pora.flights[i].flightDistance))
-            print("Flight time: " + str(pora.flights[i].flightTime))
-        print("--------------------")'''
-
     #----------COMEÇA O CRONOMETRO--------------
 
     time = 0
@@ -167,7 +146,8 @@ def main():
             l = 0
             arri = t1
             delay = 0
-            priority = []
+            priorityDelays = []
+            priorityFuel = []
 
 
             ########################
@@ -179,6 +159,8 @@ def main():
                 for af in arrayFlights:
                     if af.getDelay() >= 5:
                         priority.append(af)
+                    if af.getAirplane().fuelLevel <= 20:
+                        priorityFuel.append(af)
 
                 #print(a.name)
                 #print('Flights: ' + str(arrayFlights))
@@ -186,6 +168,7 @@ def main():
                     #print('dimensao dos avioes dos voos: ' + str(fl.getAirplane().dim))
 
                 msp = mergeSort(priority)
+                msf = mergeSortFuel(priorityFuel)
                 ms = mergeSort(arrayFlights)
 
                 #Só para visualizar que as prioridades estão a funcionar
@@ -203,22 +186,25 @@ def main():
                 for af in arrayFlights:
                     if af.getDelay() >= 5:
                         af.getAirplane().setUtility(10)
-                        priority.append(af)
+                        priorityDelays.append(af)
+                    if af.getAirplane().fuelLevel <= 100:
+                        priorityFuel.append(af)
 
                 #Só para visualizar que as prioridades estão a funcionar
                 print(a.name)
                 print('Flights: ' + str(arrayFlights))
                 for fl in arrayFlights:
-                    print('utility dos voos: ' + str(fl.getAirplane().utility))
+                    print('fuelLevel dos voos: ' + str(fl.getAirplane().fuelLevel))
                 
-                msp = mergeSortUtilities(priority)
+                msp = mergeSortUtilities(priorityDelays)
+                msf = mergeSortFuel(priorityFuel)
                 ms = mergeSortUtilities(arrayFlights)
                 
                 #Só para visualizar que as prioridades estão a funcionar
                 print('Depois do merge')
                 print('Flights: ' + str(arrayFlights))
                 for fl in ms:
-                    print('utility dos voos: ' + str(fl.getAirplane().utility))
+                    print('fuelLevel dos voos: ' + str(fl.getAirplane().fuelLevel))
 
                 if msp != []:
                     for j in range(len(msp)):
@@ -256,9 +242,9 @@ def main():
             for f in a.flights:
                 if f.getDepartureTime() < time:
                     currentFuelLevel = f.getAirplane().getFuelLevel()
-                    updateLevel = round(currentFuelLevel - 0.2, 2)
-                    f.getAirplane().setFuelLevel(updateLevel)
-
+                    perc = calculateFuelSpent(f.flightTime, time)
+                    newFuel = round(currentFuelLevel - perc, 2)
+                    f.getAirplane().setFuelLevel(newFuel)
 
         #condição de paragem
         maximo = 0
@@ -397,9 +383,53 @@ def mergeSortUtilities(arr):
 
     return arr
 
+def mergeSortFuel(arr):
+    if arr == []:
+        return arr
+
+    if len(arr) > 1: 
+        mid = len(arr)//2 #Finding the mid of the array 
+        L = arr[:mid] # Dividing the array elements  
+        R = arr[mid:] # into 2 halves 
+  
+        mergeSortUtilities(L) # Sorting the first half 
+        mergeSortUtilities(R) # Sorting the second half 
+  
+        i = j = k = 0
+          
+        # Copy data to temp arrays L[] and R[] 
+        while i < len(L) and j < len(R):
+            #lst  = a2.broadcast()
+            #res = a1.receiveBroadcast(lst)
+            plane1 = L[i].getAirplane().fuelLevel
+            plane2 = R[j].getAirplane().fuelLevel
+            if plane1 > plane2: 
+                arr[k] = L[i] 
+                i+=1
+            else: 
+                arr[k] = R[j] 
+                j+=1
+            k+=1
+          
+        # Checking if any element was left 
+        while i < len(L):
+            arr[k] = L[i] 
+            i+=1
+            k+=1
+          
+        while j < len(R): 
+            arr[k] = R[j] 
+            j+=1
+            k+=1
+
+    return arr
 
 def getIndex(array, thing):
     return array.index(thing)
+
+def calculateFuelSpent(flightTime, currentTime):
+    fuelLost = (currentTime * 0.7) / flightTime
+    return fuelLost
 
 
 #####################
