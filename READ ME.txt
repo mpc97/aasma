@@ -1,0 +1,14 @@
+-We used Python3 to run the program
+- To run the project first there are some things to be decided about the values :
+    . Number of airports: we tested with 10, but can be changed to any number between 2-10 -> to change go to the end of the project and change 'nAirports'
+    . Number of lanes to take off: we used 3 as default. -> To change search inside the creation of airports for the variable 'nl'
+    . Number of lanes to land: We tested with 1, 3 and 5. -> To change the number use the variable 'nla'
+    . Number of planes departing from all the airports:We tested with 1, 5, 10, 50 and 100 It has to be the same for all the airports. -> Change the variable 'nfm'
+-After that the priority order must be chosen.
+    .Fixed with dim: Then in receiveBroadcast the first piece of code must be ready to run and the sequence MergeSort(priorityDelays) -> MergeSortFuel(priorityFuel) -> MergeSort(arrayFlights)
+    .Fixed with airlineCompany: Then in receiveBroadcast the second piece of code must be ready to run and the sequence MergeSort(priorityDelays) -> MergeSortFuel(priorityFuel) -> MergeSort(arrayFlights)
+    .Utilities: Only the sequence MergeSortUtilities(priorityDelays) -> MergeSortFuel(priorityFuel) -> MergeSortUtilites(arrayFlights), since the receiveBroadcast is not used
+
+- By having this variables the program is ready to be run according to the preferences.
+- In a terminal run the command 'Make'.
+- A new file will be created called 'project1.txt'. In there the results will be shown.
