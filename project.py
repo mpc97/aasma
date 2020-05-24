@@ -91,33 +91,31 @@ def main():
             flights.append(flight)
 
     #criar as horas de partida, distribuindo consoante o numero de pistas do aeroporto
-    for aeroporto in airports:
-        lane = 0 #começa a 0 para o primeiro voo poder ser no departure 0
+    for a in airports:
+        lane = 0
         dep = 0
-        for i in range(len(aeroporto.flights)):
-            if aeroporto.nLanes == lane:
-                #Muda hora do departure
+        for f in a.flights:
+            if a.nLanes == lane:
                 dep += 5
-                aeroporto.flights[i].setDepartureTime(dep)
-                aeroporto.flights[i].setArrivalTime(aeroporto.flights[i].getDepartureTime() + aeroporto.flights[i].getFlightTime())
-                #se ja houver o tempo de descolagem no dicionario, entao adicionamos a lista o voo, se nao cria
-                if aeroporto.flights[i].getDepartureTime() in aeroporto.departuresFlights:
-                    aeroporto.departuresFlights[aeroporto.flights[i].getDepartureTime()].append(aeroporto.flights[i])
+                f.setDepartureTime(dep)
+                f.setArrivalTime(dep + f.flightTime)
+                if f.getDepartureTime() in a.departuresFlights:
+                    a.departuresFlights[f.getDepartureTime()].append(f)
                 else:
-                    aeroporto.departuresFlights[aeroporto.flights[i].getDepartureTime()] = []
-                    aeroporto.departuresFlights[aeroporto.flights[i].getDepartureTime()].append(aeroporto.flights[i])
+                    a.departuresFlights[f.getDepartureTime()] = []
+                    a.departuresFlights[f.getDepartureTime()].append(f)
                 
                 lane = 1
-            
             else:
                 lane += 1
-                aeroporto.flights[i].setDepartureLane(lane)    
-                #se ja houver o tempo de descolagem no dicionario, entao adicionamos a lista o voo, se nao cria
-                if aeroporto.flights[i].getDepartureTime() in aeroporto.departuresFlights:
-                    aeroporto.departuresFlights[aeroporto.flights[i].getDepartureTime()].append(aeroporto.flights[i])
+                f.setDepartureLane(lane)
+                f.setDepartureTime(dep)
+                f.setArrivalTime(dep + f.flightTime)
+                if f.getDepartureTime() in a.departuresFlights:
+                    a.departuresFlights[f.getDepartureTime()].append(f)
                 else:
-                    aeroporto.departuresFlights[aeroporto.flights[i].getDepartureTime()] = []
-                    aeroporto.departuresFlights[aeroporto.flights[i].getDepartureTime()].append(aeroporto.flights[i])
+                    a.departuresFlights[f.getDepartureTime()] = []
+                    a.departuresFlights[f.getDepartureTime()].append(f)
 
 
     #----------COMEÇA O CRONOMETRO--------------
@@ -194,6 +192,10 @@ def main():
                 for fl in arrayFlights:
                     print('fuelLevel dos voos: ' + str(fl.getAirplane().fuelLevel))'''
                 
+                ###################
+                ###   CIMA = UTILIDADES; BAIXO =PRIORIDADES FIXAS, MUDAR NA CLASSE CONSOANTE O QUE QUERES
+                ######################
+
                 #msp = mergeSortUtilities(priorityDelays)
                 #msf = mergeSortFuel(priorityFuel)
                 #ms = mergeSortUtilities(arrayFlights)
@@ -480,6 +482,7 @@ class Airplane:
         fl = otherList[3]
         res = 1
         
+        #dimensão mais prioritário
         if self.fuelLevel <= 20:
             if self.fuelLevel == fl:
                 if self.dim == d:
@@ -498,6 +501,7 @@ class Airplane:
             elif self.dim < d:
                 res = 0
 
+        #companhia aerea mais prioritaria
         '''if self.fuelLevel <= 20:
             if self.fuelLevel == fl:
                 indSelf = airlineCompanies.index(self.airlineCompany)
@@ -593,7 +597,7 @@ class Flight:
 
 nPlanes = 0
 nAirports = 10
-timeout = time.time() + 5
+timeout = time.time() + 5               #aqui é o tempo até rebentar. está em 5 seg depois de correr
 
 dimensions = [200, 180, 150, 100, 85]
 dimensionsUtilities = [3.2, 2.4, 1.6, 0.8, 0]
