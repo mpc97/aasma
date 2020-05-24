@@ -1,5 +1,6 @@
 import random
 from random import randint
+import time
 
 def main():
 
@@ -15,12 +16,11 @@ def main():
     for i in range(nAirports):
         an = random.choice(airportNames)
         airportNames.remove(an)
-        #nl = random.randint(1,3)        #numero de lanes para partidas
-        #nla = random.randint(1,3)       #numero de lanes para chegadas
-        #nfm = random.randint(1,3)       #numero maximo de voos que partem daquele aeroporto
         nl = 3
-        nla = 3
-        nfm = 5
+
+        nla = 1 #numero pistas de aterragem
+        nfm = 100 #numero de avioes que partem por aeroporto
+        
         nFlightsCreated += nfm
         locl = random.randint(locl, locl + 20)
         locl += 30  #garantir que estao pelo menos a 10 de distancia uns dos outros
@@ -122,14 +122,12 @@ def main():
 
     #----------COMEÇA O CRONOMETRO--------------
 
-    time = 0
+    timer = 0
 
     while flights != []:
-        
-        #mudar o estado para dizer que o aviao ja partiu
         for apt in airports:
-            if time in apt.departuresFlights:
-                for f in apt.departuresFlights[time]:
+            if timer in apt.departuresFlights:
+                for f in apt.departuresFlights[timer]:
                     #cria um dicionario do tempo das chegadas no aeroporto de chegada
                     apt_aa_name = f.getArrivalAirport()
                     arrivalTimeOficial = int(f.getDepartureTime() + f.getFlightTime())
@@ -141,7 +139,7 @@ def main():
                                 airports[i].arrivalFlights[arrivalTimeOficial] = []
                                 airports[i].arrivalFlights[arrivalTimeOficial].append(f)
         
-        t1 = time + 1
+        t1 = timer + 1
         for a in airports:
             l = 0
             arri = t1
@@ -187,29 +185,40 @@ def main():
                     if af.getDelay() >= 5:
                         af.getAirplane().setUtility(10)
                         priorityDelays.append(af)
-                    if af.getAirplane().fuelLevel <= 100:
+                    if af.getAirplane().fuelLevel <= 20:
                         priorityFuel.append(af)
 
                 #Só para visualizar que as prioridades estão a funcionar
-                print(a.name)
+                '''print(a.name)
                 print('Flights: ' + str(arrayFlights))
                 for fl in arrayFlights:
-                    print('fuelLevel dos voos: ' + str(fl.getAirplane().fuelLevel))
+                    print('fuelLevel dos voos: ' + str(fl.getAirplane().fuelLevel))'''
                 
-                msp = mergeSortUtilities(priorityDelays)
+                #msp = mergeSortUtilities(priorityDelays)
+                #msf = mergeSortFuel(priorityFuel)
+                #ms = mergeSortUtilities(arrayFlights)
+
+                msp = mergeSort(priorityDelays)
                 msf = mergeSortFuel(priorityFuel)
-                ms = mergeSortUtilities(arrayFlights)
+                ms = mergeSort(arrayFlights)
                 
                 #Só para visualizar que as prioridades estão a funcionar
-                print('Depois do merge')
+                '''print('Depois do merge')
                 print('Flights: ' + str(arrayFlights))
                 for fl in ms:
-                    print('fuelLevel dos voos: ' + str(fl.getAirplane().fuelLevel))
+                    print('fuelLevel dos voos: ' + str(fl.getAirplane().fuelLevel))'''
+
+
 
                 if msp != []:
                     for j in range(len(msp)):
                         ms.insert(0,msp[-1])
                         msp.remove(msp[-1])
+
+                if msf != []:
+                    for j in range(len(msf)):
+                        ms.insert(0,msf[-1])
+                        msf.remove(msf[-1])
 
                 for i in range(len(ms)):
                     if a.nLanesArrivals == l:
@@ -230,7 +239,7 @@ def main():
                     
                     else:
                         l += 1
-                        aeroporto.flights[i].setArrivalLane(l)    
+                        ms[i].setArrivalLane(l)    
                         #se ja houver o tempo de aterragem no dicionario, entao adicionamos a lista o voo, se nao cria
                         if ms[i].getArrivalTime() in a.arrivalFlights:
                             a.arrivalFlights[ms[i].getArrivalTime()].append(ms[i])
@@ -240,9 +249,9 @@ def main():
 
         for a in airports:
             for f in a.flights:
-                if f.getDepartureTime() < time:
+                if f.getArrivalTime() > timer:
                     currentFuelLevel = f.getAirplane().getFuelLevel()
-                    perc = calculateFuelSpent(f.flightTime, time)
+                    perc = 0.5
                     newFuel = round(currentFuelLevel - perc, 2)
                     f.getAirplane().setFuelLevel(newFuel)
 
@@ -252,11 +261,14 @@ def main():
             for key in a.arrivalFlights:
                 if key > maximo:
                     maximo = key
+
+        if time.time() > timeout:
+            break
         
-        if time > maximo:
+        if timer > maximo:
             break
 
-        time += 1
+        timer += 1
 
     #---------- Delay ---------
     for a in airports:
@@ -266,9 +278,11 @@ def main():
     
     avgDelay = totalDelay / totalFlights
 
+    print("\n-------INICIO DOS RESULTS---------")
     print("Total Delay in all flights: " + str(totalDelay))
     print("Total flights: " + str(totalFlights))
     print("Average: " + str(avgDelay))
+    print("-------FIM DOS RESULTS---------\n")
 
     print("Número total de voos: " + str(len(flights)))
 
@@ -317,8 +331,6 @@ def mergeSort(arr):
           
         # Copy data to temp arrays L[] and R[] 
         while i < len(L) and j < len(R):
-            #lst  = a2.broadcast()
-            #res = a1.receiveBroadcast(lst)
             lst = L[i].getAirplane().broadcast()
             res = R[j].getAirplane().receiveBroadcast(lst)
             if res == 0:
@@ -387,7 +399,7 @@ def mergeSortFuel(arr):
     if arr == []:
         return arr
 
-    if len(arr) > 1: 
+    if len(arr) > 1:
         mid = len(arr)//2 #Finding the mid of the array 
         L = arr[:mid] # Dividing the array elements  
         R = arr[mid:] # into 2 halves 
@@ -427,9 +439,6 @@ def mergeSortFuel(arr):
 def getIndex(array, thing):
     return array.index(thing)
 
-def calculateFuelSpent(flightTime, currentTime):
-    fuelLost = (currentTime * 0.7) / flightTime
-    return fuelLost
 
 
 #####################
@@ -452,13 +461,8 @@ class Airplane:
 
         self.utility = uAC + uD
     
-    utilityIncremented = False
     def setUtility(self, u):
-        if utilityIncremented == False:
-            self.utility += u
-            utilityIncremented = True
-        else:
-            self.utility += 1
+        self.utility += u
 
     def getUtility(self):
         return self.utility
@@ -475,16 +479,43 @@ class Airplane:
         ac = otherList[2]
         fl = otherList[3]
         res = 1
-        if self.dim == d:
-            if self.fuelLevel > fl:
+        
+        if self.fuelLevel <= 20:
+            if self.fuelLevel == fl:
+                if self.dim == d:
+                    indSelf = airlineCompanies.index(self.airlineCompany)
+                    indOther = airlineCompanies.index(ac)
+                    if indOther < indSelf:
+                        res = 0  
+            elif self.fuelLevel > fl:
                 res = 0
-            elif self.fuelLevel == fl:
+        else:
+            if self.dim == d:
                 indSelf = airlineCompanies.index(self.airlineCompany)
                 indOther = airlineCompanies.index(ac)
                 if indOther < indSelf:
                     res = 0 
-        elif self.dim < d:
-            res = 0
+            elif self.dim < d:
+                res = 0
+
+        '''if self.fuelLevel <= 20:
+            if self.fuelLevel == fl:
+                indSelf = airlineCompanies.index(self.airlineCompany)
+                indOther = airlineCompanies.index(ac)
+                if indSelf == indOther:
+                    if self.dim < d:
+                        res = 0 
+            elif self.fuelLevel > fl:
+                res = 0
+        else:
+            indSelf = airlineCompanies.index(self.airlineCompany)
+            indOther = airlineCompanies.index(ac)
+            if indSelf == indOther:
+                if self.dim < d:
+                    res = 0
+            elif indOther < indSelf:
+                res = 0'''
+        
         return res
 
     def setFuelLevel(self, fl):
@@ -561,7 +592,8 @@ class Flight:
 #####################
 
 nPlanes = 0
-nAirports = 2
+nAirports = 10
+timeout = time.time() + 5
 
 dimensions = [200, 180, 150, 100, 85]
 dimensionsUtilities = [3.2, 2.4, 1.6, 0.8, 0]
